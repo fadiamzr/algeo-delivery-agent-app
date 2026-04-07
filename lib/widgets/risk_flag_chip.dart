@@ -17,7 +17,7 @@ class RiskFlagChip extends StatelessWidget {
       case RiskSeverity.medium:
         return AppTheme.warningYellow;
       case RiskSeverity.low:
-        return AppTheme.accentAmber;
+        return AppTheme.accentPrimary;
     }
   }
 

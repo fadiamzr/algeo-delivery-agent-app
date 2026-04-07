@@ -99,7 +99,7 @@ class _AssignedDeliveriesScreenState extends State<AssignedDeliveriesScreen> {
         mainAxisAlignment: MainAxisAlignment.spaceAround,
         children: [
           _StatItem(
-              count: pending, label: 'Pending', color: AppTheme.accentAmber),
+              count: pending, label: 'Pending', color: AppTheme.accentPrimary),
           _StatItem(
               count: inProgress, label: 'Active', color: AppTheme.infoBlue),
           _StatItem(
@@ -134,13 +134,13 @@ class _AssignedDeliveriesScreenState extends State<AssignedDeliveriesScreen> {
                 padding:
                     const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                 decoration: BoxDecoration(
-                  color: AppTheme.accentAmber.withValues(alpha: 0.12),
+                  color: AppTheme.accentPrimary.withValues(alpha: 0.12),
                   borderRadius: BorderRadius.circular(20),
                 ),
                 child: Text(
                   '${_filteredDeliveries.length} total',
                   style: const TextStyle(
-                    color: AppTheme.accentAmber,
+                    color: AppTheme.accentPrimary,
                     fontSize: 13,
                     fontWeight: FontWeight.w600,
                   ),
@@ -159,7 +159,7 @@ class _AssignedDeliveriesScreenState extends State<AssignedDeliveriesScreen> {
           child: _isLoading
               ? const Center(
                   child: CircularProgressIndicator(
-                      color: AppTheme.accentAmber),
+                      color: AppTheme.accentPrimary),
                 )
               : _filteredDeliveries.isEmpty
                   ? Center(
@@ -181,7 +181,7 @@ class _AssignedDeliveriesScreenState extends State<AssignedDeliveriesScreen> {
                     )
                   : RefreshIndicator(
                       onRefresh: _loadDeliveries,
-                      color: AppTheme.accentAmber,
+                      color: AppTheme.accentPrimary,
                       child: ListView.builder(
                         padding: const EdgeInsets.only(bottom: 80),
                         itemCount: _filteredDeliveries.length,

@@ -83,11 +83,11 @@ class _VerificationHistoryScreenState extends State<VerificationHistoryScreen> {
                   width: 44,
                   height: 44,
                   decoration: BoxDecoration(
-                    color: AppTheme.accentAmber.withValues(alpha: 0.12),
+                    color: AppTheme.accentPrimary.withValues(alpha: 0.12),
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: const Icon(Icons.analytics_outlined,
-                      color: AppTheme.accentAmber, size: 24),
+                      color: AppTheme.accentPrimary, size: 24),
                 ),
                 const SizedBox(width: 14),
                 Column(
@@ -100,7 +100,7 @@ class _VerificationHistoryScreenState extends State<VerificationHistoryScreen> {
                     Text(
                       '${(_records.map((r) => r.resultScore).reduce((a, b) => a + b) / _records.length * 100).round()}%',
                       style: const TextStyle(
-                        color: AppTheme.accentAmber,
+                        color: AppTheme.accentPrimary,
                         fontSize: 24,
                         fontWeight: FontWeight.w700,
                       ),
@@ -131,11 +131,11 @@ class _VerificationHistoryScreenState extends State<VerificationHistoryScreen> {
         Expanded(
           child: _isLoading
               ? const Center(
-                  child: CircularProgressIndicator(color: AppTheme.accentAmber),
+                  child: CircularProgressIndicator(color: AppTheme.accentPrimary),
                 )
               : RefreshIndicator(
                   onRefresh: _loadHistory,
-                  color: AppTheme.accentAmber,
+                  color: AppTheme.accentPrimary,
                   child: ListView.builder(
                     padding: const EdgeInsets.symmetric(horizontal: 16),
                     itemCount: _records.length,

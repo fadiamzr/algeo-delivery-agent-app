@@ -106,18 +106,18 @@ class _AddressVerificationScreenState extends State<AddressVerificationScreen>
               decoration: BoxDecoration(
                 gradient: LinearGradient(
                   colors: [
-                    AppTheme.accentAmber.withValues(alpha: 0.12),
-                    AppTheme.accentOrange.withValues(alpha: 0.06),
+                    AppTheme.accentPrimary.withValues(alpha: 0.12),
+                    AppTheme.accentSecondary.withValues(alpha: 0.06),
                   ],
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
                 ),
                 borderRadius: BorderRadius.circular(16),
-                border: Border.all(color: AppTheme.accentAmber.withValues(alpha: 0.2)),
+                border: Border.all(color: AppTheme.accentPrimary.withValues(alpha: 0.2)),
               ),
               child: Column(
                 children: [
-                  const Icon(Icons.pin_drop_outlined, color: AppTheme.accentAmber, size: 40),
+                  const Icon(Icons.pin_drop_outlined, color: AppTheme.accentPrimary, size: 40),
                   const SizedBox(height: 12),
                   Text(
                     'Address Verification',
@@ -247,7 +247,7 @@ class _ProcessStep extends StatelessWidget {
     final cs = Theme.of(context).colorScheme;
     Color iconColor = cs.onSurfaceVariant;
     if (isDone) iconColor = AppTheme.successGreen;
-    if (isActive) iconColor = AppTheme.accentAmber;
+    if (isActive) iconColor = AppTheme.accentPrimary;
 
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 12),
@@ -290,7 +290,7 @@ class _ProcessStep extends StatelessWidget {
             const SizedBox(
               width: 18, height: 18,
               child: CircularProgressIndicator(
-                strokeWidth: 2, color: AppTheme.accentAmber,
+                strokeWidth: 2, color: AppTheme.accentPrimary,
               ),
             ),
         ],

@@ -2,38 +2,42 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 class AppTheme {
+  // ── Brand Colors (from logo) ──
+  static const Color brandNavy = Color(0xFF1B2B4A);
+  static const Color brandTeal = Color(0xFF4CB79E);
+
   // ── Dark Palette ──
-  static const Color primaryDark = Color(0xFF0D1117);
-  static const Color surfaceDark = Color(0xFF161B22);
-  static const Color cardDark = Color(0xFF1C2333);
-  static const Color borderDark = Color(0xFF30363D);
+  static const Color primaryDark = Color(0xFF0F1A2E);
+  static const Color surfaceDark = Color(0xFF1B2B4A);
+  static const Color cardDark = Color(0xFF243752);
+  static const Color borderDark = Color(0xFF2E4460);
 
   // ── Light Palette ──
-  static const Color primaryLight = Color(0xFFF8F9FA);
+  static const Color primaryLight = Color(0xFFF2F6FA);
   static const Color surfaceLight = Color(0xFFFFFFFF);
-  static const Color cardLight = Color(0xFFF0F2F5);
-  static const Color borderLight = Color(0xFFD0D7DE);
+  static const Color cardLight = Color(0xFFE4ECF4);
+  static const Color borderLight = Color(0xFFC0D0E0);
 
   // ── Accent Colors ──
-  static const Color accentAmber = Color(0xFFF59E0B);
-  static const Color accentOrange = Color(0xFFF97316);
-  static const Color accentGold = Color(0xFFD4A843);
+  static const Color accentPrimary = Color(0xFF4CB79E);   // teal-400 (brand)
+  static const Color accentSecondary = Color(0xFF3D9C85); // teal-500 (pressed)
+  static const Color accentLight = Color(0xFF6BC7B2);     // teal-300 (hover)
 
   // ── Semantic Colors ──
   static const Color successGreen = Color(0xFF22C55E);
-  static const Color warningYellow = Color(0xFFEAB308);
+  static const Color warningYellow = Color(0xFFF59E0B);
   static const Color errorRed = Color(0xFFEF4444);
   static const Color infoBlue = Color(0xFF3B82F6);
 
   // ── Text Colors (Dark) ──
-  static const Color textPrimary = Color(0xFFF0F6FC);
-  static const Color textSecondary = Color(0xFF8B949E);
-  static const Color textMuted = Color(0xFF6E7681);
+  static const Color textPrimary = Color(0xFFE8EEF4);
+  static const Color textSecondary = Color(0xFF8FA5BF);
+  static const Color textMuted = Color(0xFF5A7799);
 
   // ── Text Colors (Light) ──
-  static const Color textPrimaryLight = Color(0xFF1F2328);
-  static const Color textSecondaryLight = Color(0xFF656D76);
-  static const Color textMutedLight = Color(0xFF8C959F);
+  static const Color textPrimaryLight = Color(0xFF1B2B4A);
+  static const Color textSecondaryLight = Color(0xFF3B5576);
+  static const Color textMutedLight = Color(0xFF5A7799);
 
   // Score colors (universal)
   static Color getScoreColor(double score) {
@@ -48,11 +52,11 @@ class AppTheme {
     return 'Low Confidence';
   }
 
-  // Status colors (universal)
+  // Status colors (universal) — pending uses brand teal
   static Color getStatusColor(String status) {
     switch (status.toLowerCase()) {
       case 'pending':
-        return accentAmber;
+        return accentPrimary;
       case 'in progress':
         return infoBlue;
       case 'completed':
@@ -69,10 +73,10 @@ class AppTheme {
     return ThemeData(
       brightness: Brightness.dark,
       scaffoldBackgroundColor: primaryDark,
-      primaryColor: accentAmber,
+      primaryColor: accentPrimary,
       colorScheme: const ColorScheme.dark(
-        primary: accentAmber,
-        secondary: accentOrange,
+        primary: accentPrimary,
+        secondary: accentSecondary,
         surface: surfaceDark,
         surfaceContainerHighest: cardDark,
         outline: borderDark,
@@ -118,7 +122,7 @@ class AppTheme {
       outlinedButtonTheme: _buildOutlinedButtonTheme(),
       bottomNavigationBarTheme: const BottomNavigationBarThemeData(
         backgroundColor: surfaceDark,
-        selectedItemColor: accentAmber,
+        selectedItemColor: accentPrimary,
         unselectedItemColor: textMuted,
         type: BottomNavigationBarType.fixed,
         elevation: 8,
@@ -131,7 +135,7 @@ class AppTheme {
         labelStyle: const TextStyle(color: textPrimary, fontSize: 12),
       ),
       floatingActionButtonTheme: const FloatingActionButtonThemeData(
-        backgroundColor: accentAmber,
+        backgroundColor: accentPrimary,
         foregroundColor: primaryDark,
       ),
     );
@@ -142,10 +146,10 @@ class AppTheme {
     return ThemeData(
       brightness: Brightness.light,
       scaffoldBackgroundColor: primaryLight,
-      primaryColor: accentAmber,
+      primaryColor: accentPrimary,
       colorScheme: const ColorScheme.light(
-        primary: accentAmber,
-        secondary: accentOrange,
+        primary: accentPrimary,
+        secondary: accentSecondary,
         surface: surfaceLight,
         surfaceContainerHighest: cardLight,
         outline: borderLight,
@@ -191,7 +195,7 @@ class AppTheme {
       outlinedButtonTheme: _buildOutlinedButtonTheme(),
       bottomNavigationBarTheme: const BottomNavigationBarThemeData(
         backgroundColor: surfaceLight,
-        selectedItemColor: accentAmber,
+        selectedItemColor: accentPrimary,
         unselectedItemColor: textMutedLight,
         type: BottomNavigationBarType.fixed,
         elevation: 8,
@@ -204,7 +208,7 @@ class AppTheme {
         labelStyle: const TextStyle(color: textPrimaryLight, fontSize: 12),
       ),
       floatingActionButtonTheme: const FloatingActionButtonThemeData(
-        backgroundColor: accentAmber,
+        backgroundColor: accentPrimary,
         foregroundColor: primaryLight,
       ),
     );
@@ -251,7 +255,7 @@ class AppTheme {
       ),
       focusedBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(12),
-        borderSide: const BorderSide(color: accentAmber, width: 2),
+        borderSide: const BorderSide(color: accentPrimary, width: 2),
       ),
       errorBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(12),
@@ -266,7 +270,7 @@ class AppTheme {
   static ElevatedButtonThemeData _buildElevatedButtonTheme() {
     return ElevatedButtonThemeData(
       style: ElevatedButton.styleFrom(
-        backgroundColor: accentAmber,
+        backgroundColor: accentPrimary,
         foregroundColor: primaryDark,
         minimumSize: const Size(double.infinity, 56),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
@@ -279,8 +283,8 @@ class AppTheme {
   static OutlinedButtonThemeData _buildOutlinedButtonTheme() {
     return OutlinedButtonThemeData(
       style: OutlinedButton.styleFrom(
-        foregroundColor: accentAmber,
-        side: const BorderSide(color: accentAmber),
+        foregroundColor: accentPrimary,
+        side: const BorderSide(color: accentPrimary),
         minimumSize: const Size(double.infinity, 56),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
         textStyle: GoogleFonts.outfit(fontSize: 16, fontWeight: FontWeight.w600),

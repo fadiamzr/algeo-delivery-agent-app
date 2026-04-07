@@ -83,9 +83,9 @@ class _SubmitFeedbackScreenState extends State<SubmitFeedbackScreen> {
                   children: [
                     Row(
                       children: [
-                        const Icon(Icons.local_shipping_outlined, color: AppTheme.accentAmber, size: 20),
+                        const Icon(Icons.local_shipping_outlined, color: AppTheme.accentPrimary, size: 20),
                         const SizedBox(width: 8),
-                        Text(delivery.id, style: const TextStyle(color: AppTheme.accentAmber, fontSize: 14, fontWeight: FontWeight.w700)),
+                        Text(delivery.id, style: const TextStyle(color: AppTheme.accentPrimary, fontSize: 14, fontWeight: FontWeight.w700)),
                       ],
                     ),
                     const SizedBox(height: 8),

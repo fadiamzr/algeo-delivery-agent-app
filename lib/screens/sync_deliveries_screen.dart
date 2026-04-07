@@ -114,7 +114,7 @@ class _SyncDeliveriesScreenState extends State<SyncDeliveriesScreen> {
                         child: Icon(
                           Icons.sync_rounded,
                           size: 64,
-                          color: _isSyncing ? AppTheme.accentAmber : AppTheme.infoBlue,
+                          color: _isSyncing ? AppTheme.accentPrimary : AppTheme.infoBlue,
                         ),
                       ),
                       const SizedBox(height: 16),
@@ -142,14 +142,14 @@ class _SyncDeliveriesScreenState extends State<SyncDeliveriesScreen> {
                             value: _progress,
                             minHeight: 8,
                             backgroundColor: cs.outline,
-                            valueColor: const AlwaysStoppedAnimation<Color>(AppTheme.accentAmber),
+                            valueColor: const AlwaysStoppedAnimation<Color>(AppTheme.accentPrimary),
                           ),
                         ),
                         const SizedBox(height: 8),
                         Text(
                           '${(_progress * 100).round()}%',
                           style: const TextStyle(
-                            color: AppTheme.accentAmber,
+                            color: AppTheme.accentPrimary,
                             fontSize: 14,
                             fontWeight: FontWeight.w700,
                           ),
@@ -174,7 +174,7 @@ class _SyncDeliveriesScreenState extends State<SyncDeliveriesScreen> {
                     children: [
                       Row(
                         children: [
-                          const Icon(Icons.schedule, color: AppTheme.accentAmber, size: 20),
+                          const Icon(Icons.schedule, color: AppTheme.accentPrimary, size: 20),
                           const SizedBox(width: 8),
                           Text(
                             'Last Sync',
@@ -269,7 +269,7 @@ class _SyncDeliveriesScreenState extends State<SyncDeliveriesScreen> {
                     children: [
                       Row(
                         children: [
-                          const Icon(Icons.inventory_2_outlined, color: AppTheme.accentAmber, size: 20),
+                          const Icon(Icons.inventory_2_outlined, color: AppTheme.accentPrimary, size: 20),
                           const SizedBox(width: 8),
                           Text(
                             'Sync Items',
@@ -367,13 +367,13 @@ class _SyncItem extends StatelessWidget {
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
             decoration: BoxDecoration(
-              color: AppTheme.accentAmber.withValues(alpha: 0.12),
+              color: AppTheme.accentPrimary.withValues(alpha: 0.12),
               borderRadius: BorderRadius.circular(12),
             ),
             child: Text(
               '$count',
               style: const TextStyle(
-                color: AppTheme.accentAmber,
+                color: AppTheme.accentPrimary,
                 fontSize: 13,
                 fontWeight: FontWeight.w700,
               ),

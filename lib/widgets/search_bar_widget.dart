@@ -59,7 +59,7 @@ class SearchBarWidget extends StatelessWidget {
                   margin: const EdgeInsets.only(right: 4),
                   child: const Icon(
                     Icons.tune_rounded,
-                    color: AppTheme.accentAmber,
+                    color: AppTheme.accentPrimary,
                     size: 22,
                   ),
                 ),

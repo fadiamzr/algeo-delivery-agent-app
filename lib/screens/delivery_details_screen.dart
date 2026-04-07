@@ -80,7 +80,7 @@ class DeliveryDetailsScreen extends StatelessWidget {
                     _InfoRow(
                         label: 'Normalized',
                         value: verification.normalizedAddress,
-                        valueColor: AppTheme.accentAmber),
+                        valueColor: AppTheme.accentPrimary),
                   ],
                 ],
               ),
@@ -263,7 +263,7 @@ class _SectionTitle extends StatelessWidget {
   Widget build(BuildContext context) {
     return Row(
       children: [
-        Icon(icon, color: AppTheme.accentAmber, size: 20),
+        Icon(icon, color: AppTheme.accentPrimary, size: 20),
         const SizedBox(width: 8),
         Text(
           title,
@@ -325,7 +325,7 @@ class _EntityRow extends StatelessWidget {
             width: 8,
             height: 8,
             decoration: BoxDecoration(
-              color: AppTheme.accentAmber.withValues(alpha: 0.5),
+              color: AppTheme.accentPrimary.withValues(alpha: 0.5),
               borderRadius: BorderRadius.circular(2),
             ),
           ),

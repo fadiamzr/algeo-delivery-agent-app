@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import '../app_theme.dart';
 import '../services/auth_service.dart';
 
@@ -88,26 +89,25 @@ class _LoginScreenState extends State<LoginScreen>
                       width: 76,
                       height: 76,
                       decoration: BoxDecoration(
-                        gradient: const LinearGradient(
-                          colors: [AppTheme.accentAmber, AppTheme.accentOrange],
-                          begin: Alignment.topLeft,
-                          end: Alignment.bottomRight,
-                        ),
                         borderRadius: BorderRadius.circular(22),
                         boxShadow: [
                           BoxShadow(
-                            color: AppTheme.accentAmber.withValues(alpha: 0.35),
+                            color: AppTheme.accentPrimary.withValues(alpha: 0.25),
                             blurRadius: 24,
                             offset: const Offset(0, 8),
                           ),
                         ],
                       ),
-                      child: Icon(
-                        Icons.verified_rounded,
-                        size: 38,
-                        color: Theme.of(context).brightness == Brightness.dark
-                            ? AppTheme.primaryDark
-                            : AppTheme.primaryLight,
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(22),
+                        child: SvgPicture.asset(
+                          Theme.of(context).brightness == Brightness.dark
+                              ? 'assets/logo-dark.svg'
+                              : 'assets/logo-light.svg',
+                          width: 76,
+                          height: 76,
+                          fit: BoxFit.cover,
+                        ),
                       ),
                     ),
                     const SizedBox(height: 24),
@@ -226,7 +226,7 @@ class _LoginScreenState extends State<LoginScreen>
                             style: TextStyle(color: cs.onSurfaceVariant, fontSize: 12, fontWeight: FontWeight.w600),
                           ),
                           const SizedBox(height: 6),
-                          const Text('karim.benali@algeo.dz', style: TextStyle(color: AppTheme.accentAmber, fontSize: 13)),
+                          const Text('karim.benali@algeo.dz', style: TextStyle(color: AppTheme.accentPrimary, fontSize: 13)),
                           Text('agent123', style: TextStyle(color: cs.onSurfaceVariant, fontSize: 13)),
                         ],
                       ),

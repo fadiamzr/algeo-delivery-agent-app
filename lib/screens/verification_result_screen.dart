@@ -85,7 +85,7 @@ class VerificationResultScreen extends StatelessWidget {
                       child: Container(
                         padding: const EdgeInsets.symmetric(horizontal: 8),
                         color: cs.surfaceContainerHighest,
-                        child: const Icon(Icons.arrow_downward, color: AppTheme.accentAmber, size: 18),
+                        child: const Icon(Icons.arrow_downward, color: AppTheme.accentPrimary, size: 18),
                       ),
                     ),
                   ),
@@ -189,7 +189,7 @@ class _ResultSection extends StatelessWidget {
         children: [
           Row(
             children: [
-              Icon(icon, color: AppTheme.accentAmber, size: 20),
+              Icon(icon, color: AppTheme.accentPrimary, size: 20),
               const SizedBox(width: 8),
               Text(title, style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: cs.onSurface)),
             ],
@@ -211,13 +211,13 @@ class _AddressBlock extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
-    final color = isMuted ? cs.onSurfaceVariant : AppTheme.accentAmber;
+    final color = isMuted ? cs.onSurfaceVariant : AppTheme.accentPrimary;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(label, style: TextStyle(color: color, fontSize: 10, fontWeight: FontWeight.w700, letterSpacing: 1)),
         const SizedBox(height: 6),
-        Text(address, style: TextStyle(color: isMuted ? cs.onSurfaceVariant : AppTheme.accentAmber, fontSize: 15, fontWeight: FontWeight.w500)),
+        Text(address, style: TextStyle(color: isMuted ? cs.onSurfaceVariant : AppTheme.accentPrimary, fontSize: 15, fontWeight: FontWeight.w500)),
       ],
     );
   }
@@ -239,10 +239,10 @@ class _EntityTile extends StatelessWidget {
           Container(
             width: 36, height: 36,
             decoration: BoxDecoration(
-              color: AppTheme.accentAmber.withValues(alpha: 0.1),
+              color: AppTheme.accentPrimary.withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(10),
             ),
-            child: Icon(icon, color: AppTheme.accentAmber, size: 18),
+            child: Icon(icon, color: AppTheme.accentPrimary, size: 18),
           ),
           const SizedBox(width: 12),
           Column(

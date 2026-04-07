@@ -37,7 +37,7 @@ class _DeliveryFiltersScreenState extends State<DeliveryFiltersScreen> {
         actions: [
           TextButton(
             onPressed: _resetFilters,
-            child: const Text('Reset', style: TextStyle(color: AppTheme.accentAmber)),
+            child: const Text('Reset', style: TextStyle(color: AppTheme.accentPrimary)),
           ),
         ],
       ),
@@ -53,7 +53,7 @@ class _DeliveryFiltersScreenState extends State<DeliveryFiltersScreen> {
 
             _StatusFilterOption(label: 'All Statuses', color: cs.onSurfaceVariant, isSelected: _selectedStatus == null, onTap: () => setState(() => _selectedStatus = null)),
             const SizedBox(height: 8),
-            _StatusFilterOption(label: 'Pending', color: AppTheme.accentAmber, isSelected: _selectedStatus == DeliveryStatus.pending, onTap: () => setState(() => _selectedStatus = DeliveryStatus.pending)),
+            _StatusFilterOption(label: 'Pending', color: AppTheme.accentPrimary, isSelected: _selectedStatus == DeliveryStatus.pending, onTap: () => setState(() => _selectedStatus = DeliveryStatus.pending)),
             const SizedBox(height: 8),
             _StatusFilterOption(label: 'In Progress', color: AppTheme.infoBlue, isSelected: _selectedStatus == DeliveryStatus.inProgress, onTap: () => setState(() => _selectedStatus = DeliveryStatus.inProgress)),
             const SizedBox(height: 8),
@@ -86,10 +86,10 @@ class _DeliveryFiltersScreenState extends State<DeliveryFiltersScreen> {
                   const SizedBox(height: 8),
                   SliderTheme(
                     data: SliderThemeData(
-                      activeTrackColor: AppTheme.accentAmber,
+                      activeTrackColor: AppTheme.accentPrimary,
                       inactiveTrackColor: cs.outline,
-                      thumbColor: AppTheme.accentAmber,
-                      overlayColor: AppTheme.accentAmber.withValues(alpha: 0.12),
+                      thumbColor: AppTheme.accentPrimary,
+                      overlayColor: AppTheme.accentPrimary.withValues(alpha: 0.12),
                       rangeThumbShape: const RoundRangeSliderThumbShape(enabledThumbRadius: 10),
                       trackHeight: 4,
                     ),

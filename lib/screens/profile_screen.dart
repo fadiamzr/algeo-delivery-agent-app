@@ -42,14 +42,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
             height: 90,
             decoration: BoxDecoration(
               gradient: const LinearGradient(
-                colors: [AppTheme.accentAmber, AppTheme.accentOrange],
+                colors: [AppTheme.accentPrimary, AppTheme.accentSecondary],
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
               ),
               borderRadius: BorderRadius.circular(24),
               boxShadow: [
                 BoxShadow(
-                  color: AppTheme.accentAmber.withValues(alpha: 0.3),
+                  color: AppTheme.accentPrimary.withValues(alpha: 0.3),
                   blurRadius: 20,
                   offset: const Offset(0, 8),
                 ),
@@ -87,13 +87,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
             decoration: BoxDecoration(
-              color: AppTheme.accentAmber.withValues(alpha: 0.12),
+              color: AppTheme.accentPrimary.withValues(alpha: 0.12),
               borderRadius: BorderRadius.circular(20),
             ),
             child: Text(
               user?.role.replaceAll('_', ' ').toUpperCase() ?? 'AGENT',
               style: const TextStyle(
-                color: AppTheme.accentAmber,
+                color: AppTheme.accentPrimary,
                 fontSize: 11,
                 fontWeight: FontWeight.w700,
                 letterSpacing: 1,
@@ -111,7 +111,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 children: [
                   Icon(
                     isDark ? Icons.dark_mode : Icons.light_mode,
-                    color: AppTheme.accentAmber,
+                    color: AppTheme.accentPrimary,
                     size: 22,
                   ),
                   const SizedBox(width: 12),
@@ -246,7 +246,7 @@ class _ThemeModeButton extends StatelessWidget {
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
         decoration: BoxDecoration(
           color: isSelected
-              ? AppTheme.accentAmber.withValues(alpha: 0.15)
+              ? AppTheme.accentPrimary.withValues(alpha: 0.15)
               : Colors.transparent,
           borderRadius: BorderRadius.circular(10),
         ),
@@ -257,7 +257,7 @@ class _ThemeModeButton extends StatelessWidget {
               icon,
               size: 16,
               color: isSelected
-                  ? AppTheme.accentAmber
+                  ? AppTheme.accentPrimary
                   : Theme.of(context).colorScheme.onSurfaceVariant,
             ),
             const SizedBox(width: 4),
@@ -267,7 +267,7 @@ class _ThemeModeButton extends StatelessWidget {
                 fontSize: 12,
                 fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
                 color: isSelected
-                    ? AppTheme.accentAmber
+                    ? AppTheme.accentPrimary
                     : Theme.of(context).colorScheme.onSurfaceVariant,
               ),
             ),

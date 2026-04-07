@@ -37,7 +37,7 @@ class DeliveryCard extends StatelessWidget {
                   Text(
                     delivery.id,
                     style: const TextStyle(
-                      color: AppTheme.accentAmber,
+                      color: AppTheme.accentPrimary,
                       fontSize: 13,
                       fontWeight: FontWeight.w700,
                       letterSpacing: 0.5,
