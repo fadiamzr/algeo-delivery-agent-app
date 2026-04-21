@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import '../app_theme.dart';
 import '../main.dart';
 import '../services/auth_service.dart';
+import '../services/api_service.dart' as import_api;
+import '../models/user.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -11,10 +13,29 @@ class ProfileScreen extends StatefulWidget {
 }
 
 class _ProfileScreenState extends State<ProfileScreen> {
+  User? _user;
+  bool _isLoading = false;
+
   @override
   void initState() {
     super.initState();
+    _user = AuthService.currentUser;
     themeProvider.addListener(_onThemeChanged);
+    _loadProfile();
+  }
+
+  Future<void> _loadProfile() async {
+    setState(() => _isLoading = true);
+    try {
+      final fetchedUser = await AuthService.fetchCurrentUser();
+      if (mounted) setState(() => _user = fetchedUser);
+    } catch (e) {
+      if (e.toString().contains('SESSION_EXPIRED') && mounted) {
+        import_api.ApiService.handleUnauthorized(context);
+      }
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
+    }
   }
 
   @override
@@ -27,9 +48,15 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final user = AuthService.currentUser;
+    final user = _user;
     final cs = Theme.of(context).colorScheme;
     final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    if (_isLoading && user == null) {
+      return const Center(
+        child: CircularProgressIndicator(color: AppTheme.accentPrimary),
+      );
+    }
 
     return SingleChildScrollView(
       padding: const EdgeInsets.all(24),

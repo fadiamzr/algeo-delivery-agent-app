@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../app_theme.dart';
 import '../models/delivery.dart';
+import '../services/api_service.dart';
 import '../services/delivery_service.dart';
 import '../widgets/delivery_card.dart';
 import '../widgets/search_bar_widget.dart';
@@ -16,7 +17,8 @@ class AssignedDeliveriesScreen extends StatefulWidget {
 class _AssignedDeliveriesScreenState extends State<AssignedDeliveriesScreen> {
   List<Delivery> _deliveries = [];
   List<Delivery> _filteredDeliveries = [];
-  bool _isLoading = true;
+  bool _isLoading = false;
+  String? _errorMessage;
   final _searchController = TextEditingController();
 
   @override
@@ -32,16 +34,28 @@ class _AssignedDeliveriesScreenState extends State<AssignedDeliveriesScreen> {
   }
 
   Future<void> _loadDeliveries() async {
-    setState(() => _isLoading = true);
+    setState(() {
+      _isLoading = true;
+      _errorMessage = null;
+    });
     try {
       final deliveries = await DeliveryService.getAssignedDeliveries();
       setState(() {
         _deliveries = deliveries;
         _filteredDeliveries = deliveries;
-        _isLoading = false;
       });
     } catch (e) {
-      setState(() => _isLoading = false);
+      if (e.toString().contains('SESSION_EXPIRED')) {
+        ApiService.handleUnauthorized(context);
+        return;
+      }
+      setState(() {
+        _errorMessage = e.toString();
+      });
+    } finally {
+      setState(() {
+        _isLoading = false;
+      });
     }
   }
 
@@ -63,16 +77,32 @@ class _AssignedDeliveriesScreenState extends State<AssignedDeliveriesScreen> {
   void _openFilters() async {
     final result = await Navigator.pushNamed(context, '/filters');
     if (result != null && result is Map<String, dynamic>) {
-      setState(() => _isLoading = true);
-      final filtered = await DeliveryService.filterDeliveries(
-        status: result['status'],
-        minScore: result['minScore'],
-        maxScore: result['maxScore'],
-      );
       setState(() {
-        _filteredDeliveries = filtered;
-        _isLoading = false;
+        _isLoading = true;
+        _errorMessage = null;
       });
+      try {
+        final filtered = await DeliveryService.filterDeliveries(
+          status: result['status'],
+          minScore: result['minScore'],
+          maxScore: result['maxScore'],
+        );
+        setState(() {
+          _filteredDeliveries = filtered;
+        });
+      } catch (e) {
+        if (e.toString().contains('SESSION_EXPIRED')) {
+          ApiService.handleUnauthorized(context);
+          return;
+        }
+        setState(() {
+          _errorMessage = e.toString();
+        });
+      } finally {
+        setState(() {
+          _isLoading = false;
+        });
+      }
     }
   }
 
@@ -161,7 +191,14 @@ class _AssignedDeliveriesScreenState extends State<AssignedDeliveriesScreen> {
                   child: CircularProgressIndicator(
                       color: AppTheme.accentPrimary),
                 )
-              : _filteredDeliveries.isEmpty
+              : _errorMessage != null
+                  ? Center(
+                      child: Text(
+                        _errorMessage!,
+                        style: const TextStyle(color: Colors.red),
+                      ),
+                    )
+                  : _filteredDeliveries.isEmpty
                   ? Center(
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.center,

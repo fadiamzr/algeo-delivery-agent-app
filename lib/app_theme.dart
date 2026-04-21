@@ -41,9 +41,9 @@ class AppTheme {
 
   // Score colors (universal)
   static Color getScoreColor(double score) {
-    if (score >= 0.8) return successGreen;
-    if (score >= 0.5) return warningYellow;
-    return errorRed;
+    if (score >= 0.7) return Colors.green;
+    if (score >= 0.4) return Colors.orange;
+    return Colors.red;
   }
 
   static String getScoreLabel(double score) {

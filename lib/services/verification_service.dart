@@ -1,179 +1,110 @@
-import 'dart:math';
+import 'dart:convert';
+import 'package:flutter/foundation.dart';
 import '../models/address_verification.dart';
-import '../mock_data/mock_verifications.dart';
+import 'api_service.dart';
 
 class VerificationService {
-  /// Simulates the full verification flow from the sequence diagram:
-  /// normalize(rawAddress) → detect_entities → compute_score → save → return result
+  /// Calls the backend `POST /verify` endpoint to perform real address
+  /// verification (normalization → entity detection → confidence scoring).
+  ///
+  /// Always returns a valid [AddressVerification] — never throws to the UI.
   static Future<AddressVerification> verifyAddress(String rawAddress) async {
-    // Step 1: Normalize (simulate delay)
-    await Future.delayed(const Duration(milliseconds: 600));
-    final normalized = _normalize(rawAddress);
+    try {
+      final response = await ApiService.post(
+        '/verify',
+        body: {'raw_address': rawAddress},
+      );
 
-    // Step 2: Detect entities
-    await Future.delayed(const Duration(milliseconds: 400));
-    final entities = _detectEntities(normalized);
+      debugPrint('[VerificationService] POST /verify → ${response.statusCode}');
 
-    // Step 3: Compute confidence score
-    await Future.delayed(const Duration(milliseconds: 300));
-    final score = _computeScore(entities);
+      if (response.statusCode >= 200 && response.statusCode < 300) {
+        final Map<String, dynamic> json =
+            jsonDecode(response.body) as Map<String, dynamic>;
+        return AddressVerification.fromJson(json);
+      } else {
+        debugPrint('[VerificationService] Non-2xx response: ${response.body}');
+        return _fallback(rawAddress, 'Server error (${response.statusCode})');
+      }
+    } catch (e) {
+      debugPrint('[VerificationService] verifyAddress error: $e');
+      return _fallback(rawAddress, e.toString());
+    }
+  }
 
-    // Step 4: Generate risk flags
-    final riskFlags = _generateRiskFlags(rawAddress, entities, score);
-
-    // Step 5: Build result
-    final verification = AddressVerification(
-      id: 'VER-${DateTime.now().millisecondsSinceEpoch}',
+  /// Returns a safe default [AddressVerification] so the UI never crashes.
+  static AddressVerification _fallback(String rawAddress, String reason) {
+    return AddressVerification(
+      id: '',
       rawAddress: rawAddress,
-      normalizedAddress: normalized,
-      confidenceScore: score,
-      matchDetails: _generateMatchDetails(score, entities),
-      detectedEntities: entities,
-      riskFlags: riskFlags,
+      normalizedAddress: rawAddress,
+      confidenceScore: 0.0,
+      matchDetails: 'Verification unavailable: $reason',
+      detectedEntities: DetectedEntities(),
+      riskFlags: const [],
       createdAt: DateTime.now(),
     );
-
-    return verification;
-  }
-
-  static String _normalize(String rawAddress) {
-    var normalized = rawAddress.trim();
-    // Simple normalization: capitalize, standardize abbreviations
-    normalized = normalized.replaceAll('Blvd', 'Boulevard');
-    normalized = normalized.replaceAll('blvd', 'Boulevard');
-    normalized = normalized.replaceAll('Ave', 'Avenue');
-    normalized = normalized.replaceAll('ave', 'Avenue');
-    normalized = normalized.replaceAll('Bt ', 'Bâtiment ');
-    normalized = normalized.replaceAll('bt ', 'Bâtiment ');
-
-    // Capitalize first letter of each word
-    normalized = normalized.split(' ').map((w) {
-      if (w.isEmpty) return w;
-      if (['du', 'de', 'la', 'le', 'les', 'des', 'el', 'et', 'à', 'au']
-          .contains(w.toLowerCase())) {
-        return w.toLowerCase();
-      }
-      return w[0].toUpperCase() + w.substring(1);
-    }).join(' ');
-
-    return normalized;
-  }
-
-  static DetectedEntities _detectEntities(String normalized) {
-    final wilayas = [
-      'Alger', 'Oran', 'Constantine', 'Batna', 'Tizi-Ouzou',
-      'Blida', 'Sétif', 'Annaba', 'Béjaïa', 'Djelfa', 'Chlef',
-    ];
-    final lowerNormalized = normalized.toLowerCase();
-
-    String? detectedWilaya;
-    for (final w in wilayas) {
-      if (lowerNormalized.contains(w.toLowerCase())) {
-        detectedWilaya = w;
-        break;
-      }
-    }
-
-    // Extract simple postal code heuristic
-    final postalMatch = RegExp(r'\b(\d{5})\b').firstMatch(normalized);
-    int? postalCode;
-    if (postalMatch != null) {
-      postalCode = int.tryParse(postalMatch.group(1)!);
-    }
-
-    // Extract street using "Rue", "Avenue", "Boulevard" prefix
-    String? street;
-    final streetMatch = RegExp(r'((?:Rue|Avenue|Boulevard|Cité|Hai|Quartier)[^,]+)')
-        .firstMatch(normalized);
-    if (streetMatch != null) {
-      street = streetMatch.group(1)?.trim();
-    }
-
-    return DetectedEntities(
-      wilaya: detectedWilaya,
-      commune: detectedWilaya, // simplified: commune = wilaya for mock
-      postalCode: postalCode,
-      street: street,
-    );
-  }
-
-  static double _computeScore(DetectedEntities entities) {
-    double score = 0.0;
-    const wilayaWeight = 0.3;
-    const communeWeight = 0.25;
-    const postalWeight = 0.2;
-    const streetWeight = 0.25;
-
-    if (entities.wilaya != null) score += wilayaWeight;
-    if (entities.commune != null) score += communeWeight;
-    if (entities.postalCode != null) score += postalWeight;
-    if (entities.street != null) score += streetWeight;
-
-    // Add small randomness for realism
-    final random = Random();
-    score += (random.nextDouble() * 0.1) - 0.05;
-    return score.clamp(0.0, 1.0);
-  }
-
-  static List<RiskFlag> _generateRiskFlags(
-      String rawAddress, DetectedEntities entities, double score) {
-    final flags = <RiskFlag>[];
-
-    if (entities.street == null) {
-      flags.add(RiskFlag(
-        label: 'No Street Name',
-        severity: RiskSeverity.high,
-        description: 'No specific street name found in address',
-      ));
-    }
-
-    if (entities.postalCode == null) {
-      flags.add(RiskFlag(
-        label: 'Missing Postal Code',
-        severity: RiskSeverity.medium,
-        description: 'No postal code detected in address',
-      ));
-    }
-
-    if (rawAddress.contains('près') ||
-        rawAddress.contains('derrière') ||
-        rawAddress.contains('en face') ||
-        rawAddress.contains('à côté')) {
-      flags.add(RiskFlag(
-        label: 'Landmark Reference',
-        severity: RiskSeverity.high,
-        description: 'Address uses relative landmarks instead of precise location',
-      ));
-    }
-
-    if (!RegExp(r'\d').hasMatch(rawAddress)) {
-      flags.add(RiskFlag(
-        label: 'No Street Number',
-        severity: RiskSeverity.medium,
-        description: 'Address does not contain a street number',
-      ));
-    }
-
-    if (entities.wilaya == null) {
-      flags.add(RiskFlag(
-        label: 'Unknown Wilaya',
-        severity: RiskSeverity.high,
-        description: 'Could not determine the wilaya from the address',
-      ));
-    }
-
-    return flags;
-  }
-
-  static String _generateMatchDetails(double score, DetectedEntities entities) {
-    if (score >= 0.9) return 'All components matched successfully';
-    if (score >= 0.7) return 'Most components matched, minor issues detected';
-    if (score >= 0.5) return 'Partial match, some components missing or ambiguous';
-    return 'Poor match, significant address components missing';
   }
 
   static Future<List<VerificationRecord>> getVerificationHistory() async {
-    await Future.delayed(const Duration(milliseconds: 600));
-    return MockVerifications.getHistory();
+    try {
+      final response = await ApiService.get('/verifications/history');
+      if (response.statusCode == 200) {
+        final List<dynamic> data = jsonDecode(response.body) as List<dynamic>;
+        return data.map((item) {
+          final map = item as Map<String, dynamic>;
+          return VerificationRecord(
+            id: map['id']?.toString() ?? '',
+            verificationDate: map['createdAt'] != null
+                ? DateTime.parse(map['createdAt'].toString())
+                : DateTime.now(),
+            resultScore:
+                (map['confidenceScore'] as num?)?.toDouble() ?? 0.0,
+            rawAddress: map['rawAddress']?.toString() ?? '',
+            normalizedAddress: map['normalizedAddress']?.toString() ?? '',
+          );
+        }).toList();
+      } else {
+        debugPrint(
+            '[VerificationService] getVerificationHistory error: ${response.statusCode}');
+        return [];
+      }
+    } catch (e) {
+      debugPrint('[VerificationService] getVerificationHistory exception: $e');
+      return [];
+    }
+  }
+
+  static Future<void> saveVerificationToDelivery({
+    required String deliveryId,
+    required double confidenceScore,
+    required String normalizedAddress,
+    double? latitude,
+    double? longitude,
+  }) async {
+    final payload = <String, dynamic>{
+      'confidence_score': confidenceScore,
+      'normalized_address': normalizedAddress,
+    };
+    if (latitude != null) payload['latitude'] = latitude;
+    if (longitude != null) payload['longitude'] = longitude;
+
+    try {
+      final response = await ApiService.patch(
+        '/deliveries/$deliveryId/verification',
+        body: payload,
+      );
+
+      if (response.statusCode >= 200 && response.statusCode < 300) {
+        return;
+      } else if (response.statusCode == 401) {
+        throw Exception('SESSION_EXPIRED');
+      } else {
+        throw Exception('Failed to save verification result: ${response.body}');
+      }
+    } catch (e) {
+      if (e is Exception && e.toString().contains('SESSION_EXPIRED')) rethrow;
+      debugPrint('[VerificationService] saveVerificationToDelivery error: $e');
+      rethrow;
+    }
   }
 }

@@ -16,6 +16,7 @@ class _AddressVerificationScreenState extends State<AddressVerificationScreen>
   final _addressController = TextEditingController();
   bool _isVerifying = false;
   String _currentStep = '';
+  Delivery? _delivery;
   late AnimationController _pulseController;
 
   @override
@@ -30,10 +31,9 @@ class _AddressVerificationScreenState extends State<AddressVerificationScreen>
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    final delivery =
-        ModalRoute.of(context)?.settings.arguments as Delivery?;
-    if (delivery != null && _addressController.text.isEmpty) {
-      _addressController.text = delivery.rawAddress;
+    _delivery = ModalRoute.of(context)?.settings.arguments as Delivery?;
+    if (_delivery != null && _addressController.text.isEmpty) {
+      _addressController.text = _delivery!.rawAddress;
     }
   }
 
@@ -70,7 +70,10 @@ class _AddressVerificationScreenState extends State<AddressVerificationScreen>
         Navigator.pushReplacementNamed(
           context,
           '/verification-result',
-          arguments: result,
+          arguments: {
+            'verification': result,
+            'delivery': _delivery,
+          },
         );
       }
     } catch (e) {

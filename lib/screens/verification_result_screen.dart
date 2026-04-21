@@ -5,13 +5,32 @@ import '../models/address_verification.dart';
 import '../widgets/score_indicator.dart';
 import '../widgets/risk_flag_chip.dart';
 
-class VerificationResultScreen extends StatelessWidget {
+import '../models/delivery.dart';
+import '../services/verification_service.dart';
+
+class VerificationResultScreen extends StatefulWidget {
   const VerificationResultScreen({super.key});
 
   @override
+  State<VerificationResultScreen> createState() => _VerificationResultScreenState();
+}
+
+class _VerificationResultScreenState extends State<VerificationResultScreen> {
+  bool _isSaving = false;
+
+  @override
   Widget build(BuildContext context) {
-    final verification =
-        ModalRoute.of(context)!.settings.arguments as AddressVerification;
+    final args = ModalRoute.of(context)!.settings.arguments;
+    final AddressVerification verification;
+    final Delivery? delivery;
+
+    if (args is Map) {
+      verification = args['verification'] as AddressVerification;
+      delivery = args['delivery'] as Delivery?;
+    } else {
+      verification = args as AddressVerification;
+      delivery = null;
+    }
     final cs = Theme.of(context).colorScheme;
 
     return Scaffold(
@@ -154,9 +173,43 @@ class VerificationResultScreen extends StatelessWidget {
               width: double.infinity,
               height: 56,
               child: ElevatedButton.icon(
-                onPressed: () => Navigator.pop(context),
-                icon: const Icon(Icons.check, size: 22),
-                label: const Text('Done'),
+                onPressed: _isSaving
+                    ? null
+                    : () async {
+                        if (delivery != null) {
+                          setState(() => _isSaving = true);
+                          try {
+                            await VerificationService.saveVerificationToDelivery(
+                              deliveryId: delivery.id,
+                              confidenceScore: verification.confidenceScore,
+                              normalizedAddress: verification.normalizedAddress,
+                              latitude: verification.latitude,
+                              longitude: verification.longitude,
+                            );
+                            if (mounted) Navigator.pop(context, true);
+                          } catch (e) {
+                            setState(() => _isSaving = false);
+                            if (mounted) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: Text('Failed to save: $e'),
+                                  backgroundColor: AppTheme.errorRed,
+                                ),
+                              );
+                            }
+                          }
+                        } else {
+                          Navigator.pop(context, true);
+                        }
+                      },
+                icon: _isSaving
+                    ? const SizedBox(
+                        width: 22,
+                        height: 22,
+                        child: CircularProgressIndicator(strokeWidth: 2.5),
+                      )
+                    : const Icon(Icons.check, size: 22),
+                label: Text(_isSaving ? 'Saving...' : 'Done'),
               ),
             ),
             const SizedBox(height: 16),
