@@ -4,7 +4,7 @@ import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 
 class ApiService {
-  static const String baseUrl = 'http://192.168.43.158:8000';
+  static const String baseUrl = 'http://localhost:8000';
 
   // Debug: print active baseUrl on first class reference
   static final _init = () {
