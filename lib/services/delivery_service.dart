@@ -1,21 +1,56 @@
+import 'dart:convert';
+import '../models/address_verification.dart';
 import '../models/delivery.dart';
-import '../mock_data/mock_deliveries.dart';
+import 'api_service.dart';
 
 class DeliveryService {
   static List<Delivery> _deliveries = [];
 
   static Future<List<Delivery>> getAssignedDeliveries() async {
-    await Future.delayed(const Duration(milliseconds: 800));
-    _deliveries = MockDeliveries.getDeliveries();
-    return _deliveries;
+    try {
+      final response = await ApiService.get('/deliveries/');
+      if (response.statusCode != 200) {
+        throw Exception('Server error: ${response.statusCode}');
+      }
+
+      final List<dynamic> data = jsonDecode(response.body) as List<dynamic>;
+      _deliveries = data
+          .map((item) => Delivery.fromJson(item as Map<String, dynamic>))
+          .toList();
+      return _deliveries;
+    } catch (e) {
+      throw Exception('Failed to fetch deliveries: ${e.toString()}');
+    }
   }
 
   static Future<Delivery?> getDeliveryById(String id) async {
-    await Future.delayed(const Duration(milliseconds: 300));
-    try {
-      return _deliveries.firstWhere((d) => d.id == id);
-    } catch (_) {
+    final response = await ApiService.get('/deliveries/$id');
+
+    if (response.statusCode == 200) {
+      var delivery = Delivery.fromJson(jsonDecode(response.body) as Map<String, dynamic>);
+
+      // Fetch full verification data if possible
+      try {
+        // Attempting to fetch full verification. We use POST /deliveries/{id}/verify
+        // as the "similar endpoint" returning full verification, or fallback if it fails.
+        final verificationResponse = await ApiService.post('/deliveries/$id/verify');
+        if (verificationResponse.statusCode >= 200 && verificationResponse.statusCode < 300) {
+          final verificationData = jsonDecode(verificationResponse.body) as Map<String, dynamic>;
+          final fullVerification = AddressVerification.fromJson(verificationData);
+          delivery = delivery.copyWith(addressVerification: fullVerification);
+        }
+      } catch (e) {
+        // Fallback: keep existing partial verification (do NOT crash)
+        // Ignoring the exception to ensure backward compatibility as requested.
+      }
+
+      return delivery;
+    } else if (response.statusCode == 404) {
       return null;
+    } else if (response.statusCode == 401) {
+      throw Exception('Session expired');
+    } else {
+      throw Exception('Failed to load delivery');
     }
   }
 
@@ -85,10 +120,27 @@ class DeliveryService {
   }
 
   static Future<void> updateDelivery(Delivery delivery) async {
-    await Future.delayed(const Duration(milliseconds: 300));
-    final index = _deliveries.indexWhere((d) => d.id == delivery.id);
-    if (index != -1) {
-      _deliveries[index] = delivery;
+    String statusStr = 'pending';
+    switch (delivery.status) {
+      case DeliveryStatus.pending: statusStr = 'pending'; break;
+      case DeliveryStatus.inProgress: statusStr = 'in_progress'; break;
+      case DeliveryStatus.completed: statusStr = 'delivered'; break;
+      case DeliveryStatus.failed: statusStr = 'cancelled'; break;
+    }
+
+    final response = await ApiService.patch('/deliveries/${delivery.id}/status', body: {
+      'status': statusStr,
+    });
+
+    if (response.statusCode >= 200 && response.statusCode < 300) {
+      final index = _deliveries.indexWhere((d) => d.id == delivery.id);
+      if (index != -1) {
+        _deliveries[index] = delivery;
+      }
+    } else if (response.statusCode == 401) {
+      throw Exception('SESSION_EXPIRED');
+    } else {
+      throw Exception('Failed to update delivery');
     }
   }
 }

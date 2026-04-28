@@ -1,3 +1,6 @@
+import 'dart:convert';
+import 'api_service.dart';
+
 class SyncService {
   static DateTime? _lastSyncTime;
   static bool _isSyncing = false;
@@ -9,38 +12,55 @@ class SyncService {
     Function(double progress, String message)? onProgress,
   }) async {
     _isSyncing = true;
-
-    final steps = [
-      'Connecting to server...',
-      'Uploading pending feedback...',
-      'Uploading verification results...',
-      'Downloading new deliveries...',
-      'Downloading updated addresses...',
-      'Syncing verification history...',
-      'Finalizing sync...',
-    ];
-
+    
+    int totalItems = 0;
     int synced = 0;
     int failed = 0;
 
-    for (int i = 0; i < steps.length; i++) {
-      final progress = (i + 1) / steps.length;
-      onProgress?.call(progress, steps[i]);
-      await Future.delayed(const Duration(milliseconds: 600));
-
-      // Simulate occasional failure
-      if (i == 4) {
-        failed = 1;
+    try {
+      onProgress?.call(0.1, 'Connecting to server...');
+      
+      final response = await ApiService.post('/sync/');
+      
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        onProgress?.call(0.6, 'Processing data...');
+        final data = jsonDecode(response.body);
+        
+        // Count items received
+        final deliveries = data['deliveries'] as List? ?? [];
+        final history = data['history'] as List? ?? [];
+        
+        // The endpoint may return totalItems or we compute it
+        totalItems = data['totalItems'] ?? (deliveries.length + history.length + 1); // +1 profile
+        synced = totalItems; 
+        failed = 0;
+        
+        final lastSyncStr = data['lastSync'];
+        if (lastSyncStr != null) {
+          _lastSyncTime = DateTime.parse(lastSyncStr).toLocal();
+        } else {
+          _lastSyncTime = DateTime.now();
+        }
+        
+        onProgress?.call(1.0, 'Sync complete');
       } else {
-        synced++;
+        totalItems = 1;
+        failed = 1;
+        synced = 0;
+        onProgress?.call(1.0, 'Sync failed: Server Error');
       }
+    } catch (e) {
+      totalItems = 1;
+      failed = 1;
+      synced = 0;
+      onProgress?.call(1.0, 'Sync failed: Network Error');
     }
 
-    _lastSyncTime = DateTime.now();
     _isSyncing = false;
+    _lastSyncTime ??= DateTime.now();
 
     return SyncResult(
-      totalItems: steps.length,
+      totalItems: totalItems,
       syncedItems: synced,
       failedItems: failed,
       syncTime: _lastSyncTime!,
@@ -62,5 +82,5 @@ class SyncResult {
   });
 
   bool get hasErrors => failedItems > 0;
-  double get successRate => syncedItems / totalItems;
+  double get successRate => totalItems == 0 ? 1.0 : syncedItems / totalItems;
 }

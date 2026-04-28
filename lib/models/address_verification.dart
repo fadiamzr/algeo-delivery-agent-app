@@ -13,10 +13,12 @@ class DetectedEntities {
 
   factory DetectedEntities.fromJson(Map<String, dynamic> json) {
     return DetectedEntities(
-      wilaya: json['wilaya'],
-      commune: json['commune'],
-      postalCode: json['postalCode'],
-      street: json['street'],
+      wilaya: json['wilaya']?.toString(),
+      commune: json['commune']?.toString(),
+      postalCode: json['postal_code'] != null
+          ? int.tryParse(json['postal_code'].toString())
+          : (json['postalCode'] != null ? int.tryParse(json['postalCode'].toString()) : null),
+      street: json['street']?.toString(),
     );
   }
 
@@ -37,6 +39,8 @@ class AddressVerification {
   final DetectedEntities detectedEntities;
   final List<RiskFlag> riskFlags;
   final DateTime createdAt;
+  final double? latitude;
+  final double? longitude;
 
   AddressVerification({
     required this.id,
@@ -47,20 +51,50 @@ class AddressVerification {
     required this.detectedEntities,
     required this.riskFlags,
     required this.createdAt,
+    this.latitude,
+    this.longitude,
   });
 
   factory AddressVerification.fromJson(Map<String, dynamic> json) {
+    // detectedEntities may be null when backend skips entity extraction
+    DetectedEntities entities;
+    final entitiesJson = json['detected_entities'] ?? json['detectedEntities'];
+    if (entitiesJson != null) {
+      entities = DetectedEntities.fromJson(
+          entitiesJson as Map<String, dynamic>);
+    } else {
+      entities = DetectedEntities();
+    }
+
+    // riskFlags may be null — default to empty list
+    List<RiskFlag> flags = [];
+    final flagsJson = json['risk_flags'] ?? json['riskFlags'];
+    if (flagsJson != null) {
+      flags = (flagsJson as List)
+          .map((e) => RiskFlag.fromJson(e as Map<String, dynamic>))
+          .toList();
+    }
+
+    final createdAtStr = json['created_at'] ?? json['createdAt'];
+
     return AddressVerification(
-      id: json['id'],
-      rawAddress: json['rawAddress'],
-      normalizedAddress: json['normalizedAddress'],
-      confidenceScore: (json['confidenceScore'] as num).toDouble(),
-      matchDetails: json['matchDetails'],
-      detectedEntities: DetectedEntities.fromJson(json['detectedEntities']),
-      riskFlags: (json['riskFlags'] as List)
-          .map((e) => RiskFlag.fromJson(e))
-          .toList(),
-      createdAt: DateTime.parse(json['createdAt']),
+      id: json['id']?.toString() ?? '',
+      rawAddress: (json['raw_address'] ?? json['rawAddress'])?.toString() ?? '',
+      normalizedAddress: (json['normalized_address'] ?? json['normalizedAddress'])?.toString() ?? '',
+      confidenceScore:
+          ((json['confidence_score'] ?? json['confidenceScore']) as num?)?.toDouble() ?? 0.0,
+      matchDetails: (json['match_details'] ?? json['matchDetails'])?.toString() ?? '',
+      detectedEntities: entities,
+      riskFlags: flags,
+      createdAt: createdAtStr != null
+          ? DateTime.parse(createdAtStr.toString())
+          : DateTime.now(),
+      latitude: json['latitude'] != null
+          ? (json['latitude'] as num).toDouble()
+          : null,
+      longitude: json['longitude'] != null
+          ? (json['longitude'] as num).toDouble()
+          : null,
     );
   }
 }
@@ -78,11 +112,11 @@ class RiskFlag {
 
   factory RiskFlag.fromJson(Map<String, dynamic> json) {
     return RiskFlag(
-      label: json['label'],
+      label: json['label']?.toString() ?? '',
       severity: RiskSeverity.values.firstWhere(
-          (e) => e.name == json['severity'],
+          (e) => e.name.toLowerCase() == (json['severity'] ?? '').toString().toLowerCase(),
           orElse: () => RiskSeverity.low),
-      description: json['description'],
+      description: json['description']?.toString() ?? '',
     );
   }
 }

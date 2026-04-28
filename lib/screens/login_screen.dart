@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import '../app_theme.dart';
-import '../services/auth_service.dart';
+import '../services/api_service.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -52,8 +52,8 @@ class _LoginScreenState extends State<LoginScreen>
     });
 
     try {
-      await AuthService.login(
-        _emailController.text.trim(),
+      await ApiService.login(
+        _emailController.text,
         _passwordController.text,
       );
       if (mounted) {
@@ -209,28 +209,7 @@ class _LoginScreenState extends State<LoginScreen>
                             : const Text('Sign In'),
                       ),
                     ),
-                    const SizedBox(height: 24),
 
-                    // Demo credentials
-                    Container(
-                      padding: const EdgeInsets.all(14),
-                      decoration: BoxDecoration(
-                        color: cs.surfaceContainerHighest,
-                        borderRadius: BorderRadius.circular(12),
-                        border: Border.all(color: cs.outline),
-                      ),
-                      child: Column(
-                        children: [
-                          Text(
-                            'Demo Credentials',
-                            style: TextStyle(color: cs.onSurfaceVariant, fontSize: 12, fontWeight: FontWeight.w600),
-                          ),
-                          const SizedBox(height: 6),
-                          const Text('karim.benali@algeo.dz', style: TextStyle(color: AppTheme.accentPrimary, fontSize: 13)),
-                          Text('agent123', style: TextStyle(color: cs.onSurfaceVariant, fontSize: 13)),
-                        ],
-                      ),
-                    ),
                   ],
                 ),
               ),

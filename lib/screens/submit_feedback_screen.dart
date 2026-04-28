@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../app_theme.dart';
 import '../models/delivery.dart';
 import '../models/feedback.dart';
+import '../services/api_service.dart';
 
 class SubmitFeedbackScreen extends StatefulWidget {
   const SubmitFeedbackScreen({super.key});
@@ -13,9 +14,12 @@ class SubmitFeedbackScreen extends StatefulWidget {
 class _SubmitFeedbackScreenState extends State<SubmitFeedbackScreen> {
   FeedbackOutcome? _selectedOutcome;
   final _notesController = TextEditingController();
-  bool _isSubmitting = false;
+  bool _isLoading = false;
 
   Future<void> _submit() async {
+    final delivery = ModalRoute.of(context)?.settings.arguments as Delivery?;
+    if (delivery == null) return;
+
     if (_selectedOutcome == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
@@ -26,28 +30,56 @@ class _SubmitFeedbackScreenState extends State<SubmitFeedbackScreen> {
       return;
     }
 
-    setState(() => _isSubmitting = true);
-    await Future.delayed(const Duration(seconds: 1));
+    setState(() => _isLoading = true);
 
-    if (mounted) {
+    try {
+      final response = await ApiService.post(
+        '/deliveries/${delivery.id}/feedback',
+        body: {
+          'outcome': _selectedOutcome!.name,
+          'notes': _notesController.text,
+        },
+      );
+
+      if (!mounted) return;
+
+      if (response.statusCode == 201) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Feedback submitted'),
+            backgroundColor: AppTheme.successGreen,
+          ),
+        );
+        Navigator.pop(context, DeliveryFeedback(
+          id: 'FB-${DateTime.now().millisecondsSinceEpoch}',
+          outcome: _selectedOutcome!,
+          notes: _notesController.text,
+          createdAt: DateTime.now(),
+        ));
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(response.body),
+            backgroundColor: AppTheme.errorRed,
+          ),
+        );
+      }
+    } catch (e) {
+      if (e.toString().contains('SESSION_EXPIRED')) {
+        ApiService.handleUnauthorized(context);
+        return;
+      }
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Row(
-            children: [
-              Icon(Icons.check_circle, color: Colors.white, size: 20),
-              SizedBox(width: 10),
-              Text('Feedback submitted successfully'),
-            ],
-          ),
-          backgroundColor: AppTheme.successGreen,
+          content: Text('Network error. Try again.'),
+          backgroundColor: AppTheme.errorRed,
         ),
       );
-      Navigator.pop(context, DeliveryFeedback(
-        id: 'FB-${DateTime.now().millisecondsSinceEpoch}',
-        outcome: _selectedOutcome!,
-        notes: _notesController.text,
-        createdAt: DateTime.now(),
-      ));
+    } finally {
+      if (mounted) {
+        setState(() => _isLoading = false);
+      }
     }
   }
 
@@ -137,11 +169,11 @@ class _SubmitFeedbackScreenState extends State<SubmitFeedbackScreen> {
               width: double.infinity,
               height: 56,
               child: ElevatedButton.icon(
-                onPressed: _isSubmitting ? null : _submit,
-                icon: _isSubmitting
+                onPressed: _isLoading ? null : _submit,
+                icon: _isLoading
                     ? const SizedBox(width: 22, height: 22, child: CircularProgressIndicator(strokeWidth: 2.5, color: AppTheme.primaryDark))
                     : const Icon(Icons.send_rounded, size: 22),
-                label: Text(_isSubmitting ? 'Submitting...' : 'Submit Feedback'),
+                label: Text(_isLoading ? 'Submitting...' : 'Submit Feedback'),
               ),
             ),
           ],

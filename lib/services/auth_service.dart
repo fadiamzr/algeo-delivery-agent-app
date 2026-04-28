@@ -1,5 +1,9 @@
+import 'dart:async';
+import 'dart:convert';
+import 'package:flutter/foundation.dart';
+import 'package:http/http.dart' as http;
 import '../models/user.dart';
-import '../mock_data/mock_users.dart';
+import 'api_service.dart';
 
 class AuthService {
   static User? _currentUser;
@@ -9,27 +13,100 @@ class AuthService {
   static User? get currentUser => _currentUser;
   static String? get token => _token;
 
-  static Future<User> login(String email, String password) async {
-    // Simulate network delay
-    await Future.delayed(const Duration(seconds: 1));
+  static Future<User> login(String rawEmail, String rawPassword) async {
+    final email = rawEmail.trim();
+    final password = rawPassword.trim();
 
-    if (email == MockUsers.mockEmail && password == MockUsers.mockPassword) {
-      _currentUser = MockUsers.deliveryAgent;
-      _token = MockUsers.mockToken;
-      return _currentUser!;
+    // Build URL from ApiService.baseUrl so this always tracks the single source of truth.
+    final uri = Uri.parse('${ApiService.baseUrl}/auth/login');
+
+    debugPrint('Login Request URL: $uri');
+
+    try {
+      final response = await http.post(
+        uri,
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json',
+        },
+        body: jsonEncode({
+          'email': email,
+          'password': password,
+        }),
+      ).timeout(const Duration(seconds: 10));
+
+      debugPrint('Login Response Status: ${response.statusCode}');
+      debugPrint('Login Response Body: ${response.body}');
+
+      if (response.statusCode >= 200 && response.statusCode < 300) {
+        final Map<String, dynamic> body;
+        try {
+          body = jsonDecode(response.body) as Map<String, dynamic>;
+        } catch (e) {
+          throw Exception('Failed to decode JSON response');
+        }
+
+        final accessToken = body['access_token']?.toString();
+        if (accessToken == null || accessToken.isEmpty) {
+          throw Exception('Access token missing from response');
+        }
+
+        await ApiService.saveToken(accessToken);
+        _token = accessToken;
+        
+        _currentUser = User(
+          id: body['user_id']?.toString() ?? '1',
+          name: body['name']?.toString() ?? email.split('@').first,
+          email: email,
+          role: body['role']?.toString() ?? 'agent',
+          createdAt: DateTime.now(),
+        );
+        return _currentUser!;
+      } else if (response.statusCode == 401 || response.statusCode == 403 || response.statusCode == 404) {
+        throw Exception('Invalid email or password');
+      } else {
+        throw Exception('Server error (${response.statusCode}): ${response.body}');
+      }
+    } on http.ClientException catch (e) {
+      debugPrint('Login ClientException: $e');
+      throw Exception('Network error: Could not connect to the server');
+    } on TimeoutException catch (e) {
+      debugPrint('Login Exception: $e');
+      throw Exception('Network error: Connection timed out');
+    } catch (e) {
+      debugPrint('Login Exception: $e');
+      if (e is Exception) rethrow;
+      throw Exception('An unexpected error occurred: $e');
     }
-
-    throw Exception('Invalid email or password');
   }
 
   static Future<void> logout() async {
-    await Future.delayed(const Duration(milliseconds: 300));
+    await ApiService.clearToken();
     _currentUser = null;
     _token = null;
   }
 
+  static Future<User> fetchCurrentUser() async {
+    final response = await ApiService.get('/auth/me');
+    if (response.statusCode == 200) {
+      final body = jsonDecode(response.body) as Map<String, dynamic>;
+      _currentUser = User(
+        id: body['id']?.toString() ?? _currentUser?.id ?? '1',
+        name: body['name']?.toString() ?? _currentUser?.name ?? 'Delivery Agent',
+        email: body['email']?.toString() ?? _currentUser?.email ?? '',
+        role: body['role']?.toString() ?? _currentUser?.role ?? 'agent',
+        createdAt: body['created_at'] != null 
+            ? DateTime.parse(body['created_at'].toString()) 
+            : DateTime.now(),
+      );
+      return _currentUser!;
+    } else {
+      throw Exception('Failed to fetch profile: ${response.statusCode}');
+    }
+  }
+
   static Future<bool> validateToken(String token) async {
-    await Future.delayed(const Duration(milliseconds: 200));
-    return token == MockUsers.mockToken;
+    final stored = await ApiService.getToken();
+    return stored != null && stored == token;
   }
 }

@@ -2,16 +2,172 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import '../app_theme.dart';
 import '../models/delivery.dart';
+import '../services/delivery_service.dart';
 import '../widgets/status_badge.dart';
 import '../widgets/score_indicator.dart';
 import '../widgets/risk_flag_chip.dart';
+import 'package:flutter_map/flutter_map.dart';
+import 'package:latlong2/latlong.dart';
+import 'package:url_launcher/url_launcher.dart';
 
-class DeliveryDetailsScreen extends StatelessWidget {
+class DeliveryDetailsScreen extends StatefulWidget {
   const DeliveryDetailsScreen({super.key});
 
   @override
+  State<DeliveryDetailsScreen> createState() => _DeliveryDetailsScreenState();
+}
+
+class _DeliveryDetailsScreenState extends State<DeliveryDetailsScreen> {
+  Delivery? _delivery;
+  bool _isLoading = false;
+  bool _hasRefreshed = false;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (_delivery == null) {
+      _delivery = ModalRoute.of(context)!.settings.arguments as Delivery?;
+    }
+    if (!_hasRefreshed && _delivery != null) {
+      _hasRefreshed = true;
+      _refreshDelivery();
+    }
+  }
+
+  Future<void> _refreshDelivery() async {
+    if (_delivery == null) return;
+    setState(() => _isLoading = true);
+    try {
+      final updated = await DeliveryService.getDeliveryById(_delivery!.id);
+      if (updated != null && mounted) {
+        setState(() {
+          _delivery = updated;
+        });
+      }
+    } catch (e) {
+      // Ignore or show error
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
+    }
+  }
+
+  Future<void> openDirections(double lat, double lng) async {
+    final url = Uri.parse(
+      'https://www.google.com/maps/dir/?api=1&destination=$lat,$lng&travelmode=driving',
+    );
+
+    if (await canLaunchUrl(url)) {
+      await launchUrl(url, mode: LaunchMode.externalApplication);
+    } else {
+      throw Exception('Could not open maps');
+    }
+  }
+
+  Widget _buildMapSection(Delivery delivery) {
+    final lat = delivery.addressVerification?.latitude;
+    final lng = delivery.addressVerification?.longitude;
+
+    final hasLocation = lat != null && lng != null;
+
+    return Container(
+      margin: const EdgeInsets.symmetric(vertical: 8),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Theme.of(context).colorScheme.surfaceContainerHighest,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: Theme.of(context).colorScheme.outline,
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(Icons.map_outlined, color: AppTheme.accentPrimary, size: 20),
+              const SizedBox(width: 8),
+              Text(
+                "Map & Location",
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w600,
+                  color: Theme.of(context).colorScheme.onSurface,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+
+          /// MAP CONTAINER
+          Container(
+            height: 180,
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(12),
+              color: Colors.grey.withOpacity(0.1),
+            ),
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(12),
+              child: hasLocation
+                  ? FlutterMap(
+                      options: MapOptions(
+                        initialCenter: LatLng(lat!, lng!),
+                        initialZoom: 14,
+                      ),
+                      children: [
+                        TileLayer(
+                          urlTemplate:
+                              "https://tile.openstreetmap.org/{z}/{x}/{y}.png",
+                          userAgentPackageName: 'com.example.app',
+                        ),
+                        MarkerLayer(
+                          markers: [
+                            Marker(
+                              point: LatLng(lat, lng),
+                              width: 40,
+                              height: 40,
+                              child: const Icon(
+                                Icons.location_on,
+                                color: Colors.red,
+                                size: 30,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    )
+                  : const Center(
+                      child: Text(
+                        "📍 Location not available — address could not be geocoded",
+                        textAlign: TextAlign.center,
+                        style: TextStyle(fontSize: 13),
+                      ),
+                    ),
+            ),
+          ),
+
+          const SizedBox(height: 12),
+
+          /// RAW ADDRESS
+          _InfoRow(label: 'Raw Address', value: delivery.rawAddress),
+
+          /// NORMALIZED ADDRESS
+          if (delivery.addressVerification?.normalizedAddress != null) ...[
+            const SizedBox(height: 8),
+            _InfoRow(
+              label: 'Normalized',
+              value: delivery.addressVerification!.normalizedAddress,
+              valueColor: AppTheme.accentPrimary,
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+
+  @override
   Widget build(BuildContext context) {
-    final delivery = ModalRoute.of(context)!.settings.arguments as Delivery;
+    if (_delivery == null) return const Scaffold();
+    final delivery = _delivery!;
     final verification = delivery.addressVerification;
     final feedback = delivery.feedback;
     final cs = Theme.of(context).colorScheme;
@@ -41,12 +197,30 @@ class DeliveryDetailsScreen extends StatelessWidget {
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  StatusBadge(status: delivery.statusLabel, fontSize: 14),
-                  Text(
-                    DateFormat('MMM d, yyyy • HH:mm')
-                        .format(delivery.scheduledDate),
-                    style: TextStyle(color: cs.onSurfaceVariant, fontSize: 13),
+                  Row(
+                    children: [
+                      StatusBadge(status: delivery.statusLabel, fontSize: 14),
+                      if (verification != null) ...[
+                        const SizedBox(width: 8),
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                          decoration: BoxDecoration(
+                            color: AppTheme.successGreen.withValues(alpha: 0.1),
+                            borderRadius: BorderRadius.circular(8),
+                            border: Border.all(color: AppTheme.successGreen.withValues(alpha: 0.3)),
+                          ),
+                          child: const Text('Verified', style: TextStyle(color: AppTheme.successGreen, fontSize: 12, fontWeight: FontWeight.bold)),
+                        ),
+                      ],
+                    ],
                   ),
+                  _isLoading
+                      ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2))
+                      : Text(
+                          DateFormat('MMM d, yyyy • HH:mm')
+                              .format(delivery.scheduledDate),
+                          style: TextStyle(color: cs.onSurfaceVariant, fontSize: 13),
+                        ),
                 ],
               ),
             ),
@@ -67,24 +241,26 @@ class DeliveryDetailsScreen extends StatelessWidget {
             ),
             const SizedBox(height: 12),
 
-            // Address Info
-            _SectionCard(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const _SectionTitle(icon: Icons.location_on_outlined, title: 'Address'),
-                  const SizedBox(height: 12),
-                  _InfoRow(label: 'Raw Address', value: delivery.rawAddress),
-                  if (verification != null) ...[
-                    const SizedBox(height: 8),
-                    _InfoRow(
-                        label: 'Normalized',
-                        value: verification.normalizedAddress,
-                        valueColor: AppTheme.accentPrimary),
-                  ],
-                ],
+            // Address Info Map Section
+            _buildMapSection(delivery),
+            if (delivery.addressVerification?.latitude != null && delivery.addressVerification?.longitude != null) ...[
+              const SizedBox(height: 8),
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton.icon(
+                  onPressed: () {
+                    final lat = delivery.addressVerification?.latitude;
+                    final lng = delivery.addressVerification?.longitude;
+
+                    if (lat != null && lng != null) {
+                      openDirections(lat, lng);
+                    }
+                  },
+                  icon: const Icon(Icons.navigation),
+                  label: const Text("Directions"),
+                ),
               ),
-            ),
+            ],
             const SizedBox(height: 12),
 
             // Verification Score
@@ -192,8 +368,11 @@ class DeliveryDetailsScreen extends StatelessWidget {
                 width: double.infinity,
                 height: 56,
                 child: ElevatedButton.icon(
-                  onPressed: () {
-                    Navigator.pushNamed(context, '/verify-address', arguments: delivery);
+                  onPressed: () async {
+                    final result = await Navigator.pushNamed(context, '/verify-address', arguments: delivery);
+                    if (result == true) {
+                      _refreshDelivery();
+                    }
                   },
                   icon: const Icon(Icons.verified_outlined, size: 22),
                   label: const Text('Verify Address'),
