@@ -1,5 +1,4 @@
 import 'dart:convert';
-import 'package:flutter/foundation.dart';
 import '../models/address_verification.dart';
 import 'api_service.dart';
 
@@ -15,18 +14,14 @@ class VerificationService {
         body: {'raw_address': rawAddress},
       );
 
-      debugPrint('[VerificationService] POST /verify → ${response.statusCode}');
-
       if (response.statusCode >= 200 && response.statusCode < 300) {
         final Map<String, dynamic> json =
             jsonDecode(response.body) as Map<String, dynamic>;
         return AddressVerification.fromJson(json);
       } else {
-        debugPrint('[VerificationService] Non-2xx response: ${response.body}');
         return _fallback(rawAddress, 'Server error (${response.statusCode})');
       }
     } catch (e) {
-      debugPrint('[VerificationService] verifyAddress error: $e');
       return _fallback(rawAddress, e.toString());
     }
   }
@@ -64,12 +59,9 @@ class VerificationService {
           );
         }).toList();
       } else {
-        debugPrint(
-            '[VerificationService] getVerificationHistory error: ${response.statusCode}');
         return [];
       }
     } catch (e) {
-      debugPrint('[VerificationService] getVerificationHistory exception: $e');
       return [];
     }
   }
@@ -88,23 +80,17 @@ class VerificationService {
     if (latitude != null) payload['latitude'] = latitude;
     if (longitude != null) payload['longitude'] = longitude;
 
-    try {
-      final response = await ApiService.patch(
-        '/deliveries/$deliveryId/verification',
-        body: payload,
-      );
+    final response = await ApiService.patch(
+      '/deliveries/$deliveryId/verification',
+      body: payload,
+    );
 
-      if (response.statusCode >= 200 && response.statusCode < 300) {
-        return;
-      } else if (response.statusCode == 401) {
-        throw Exception('SESSION_EXPIRED');
-      } else {
-        throw Exception('Failed to save verification result: ${response.body}');
-      }
-    } catch (e) {
-      if (e is Exception && e.toString().contains('SESSION_EXPIRED')) rethrow;
-      debugPrint('[VerificationService] saveVerificationToDelivery error: $e');
-      rethrow;
+    if (response.statusCode >= 200 && response.statusCode < 300) {
+      return;
+    } else if (response.statusCode == 401) {
+      throw Exception('SESSION_EXPIRED');
+    } else {
+      throw Exception('Failed to save verification result: ${response.body}');
     }
   }
 }

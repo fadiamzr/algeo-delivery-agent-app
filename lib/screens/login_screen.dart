@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import '../app_theme.dart';
-import '../services/api_service.dart';
+import '../services/auth_service.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -52,7 +52,7 @@ class _LoginScreenState extends State<LoginScreen>
     });
 
     try {
-      await ApiService.login(
+      await AuthService.login(
         _emailController.text,
         _passwordController.text,
       );
@@ -63,7 +63,14 @@ class _LoginScreenState extends State<LoginScreen>
       if (mounted) {
         setState(() {
           _isLoading = false;
-          _errorMessage = 'Invalid email or password';
+          // Only show 'Invalid email or password' if the message explicitly says so, 
+          // otherwise show the actual error (e.g. network errors).
+          final errorString = e.toString();
+          if (errorString.contains('401') || errorString.contains('403') || errorString.contains('404')) {
+             _errorMessage = 'Invalid email or password';
+          } else {
+             _errorMessage = errorString.replaceAll('Exception: ', '');
+          }
         });
       }
     }

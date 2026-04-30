@@ -1,6 +1,5 @@
 import 'dart:async';
 import 'dart:convert';
-import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import '../models/user.dart';
 import 'api_service.dart';
@@ -17,26 +16,22 @@ class AuthService {
     final email = rawEmail.trim();
     final password = rawPassword.trim();
 
-    // Build URL from ApiService.baseUrl so this always tracks the single source of truth.
     final uri = Uri.parse('${ApiService.baseUrl}/auth/login');
 
-    debugPrint('Login Request URL: $uri');
-
     try {
-      final response = await http.post(
-        uri,
-        headers: {
-          'Accept': 'application/json',
-          'Content-Type': 'application/json',
-        },
-        body: jsonEncode({
-          'email': email,
-          'password': password,
-        }),
-      ).timeout(const Duration(seconds: 10));
-
-      debugPrint('Login Response Status: ${response.statusCode}');
-      debugPrint('Login Response Body: ${response.body}');
+      final response = await http
+          .post(
+            uri,
+            headers: {
+              'Accept': 'application/json',
+              'Content-Type': 'application/json',
+            },
+            body: jsonEncode({
+              'email': email,
+              'password': password,
+            }),
+          )
+          .timeout(const Duration(seconds: 10));
 
       if (response.statusCode >= 200 && response.statusCode < 300) {
         final Map<String, dynamic> body;
@@ -53,7 +48,7 @@ class AuthService {
 
         await ApiService.saveToken(accessToken);
         _token = accessToken;
-        
+
         _currentUser = User(
           id: body['user_id']?.toString() ?? '1',
           name: body['name']?.toString() ?? email.split('@').first,
@@ -62,19 +57,20 @@ class AuthService {
           createdAt: DateTime.now(),
         );
         return _currentUser!;
-      } else if (response.statusCode == 401 || response.statusCode == 403 || response.statusCode == 404) {
+      } else if (response.statusCode == 401 ||
+          response.statusCode == 403 ||
+          response.statusCode == 404) {
         throw Exception('Invalid email or password');
       } else {
-        throw Exception('Server error (${response.statusCode}): ${response.body}');
+        throw Exception(
+          'Server error (${response.statusCode}): ${response.body}',
+        );
       }
-    } on http.ClientException catch (e) {
-      debugPrint('Login ClientException: $e');
+    } on http.ClientException {
       throw Exception('Network error: Could not connect to the server');
-    } on TimeoutException catch (e) {
-      debugPrint('Login Exception: $e');
+    } on TimeoutException {
       throw Exception('Network error: Connection timed out');
     } catch (e) {
-      debugPrint('Login Exception: $e');
       if (e is Exception) rethrow;
       throw Exception('An unexpected error occurred: $e');
     }
@@ -92,11 +88,12 @@ class AuthService {
       final body = jsonDecode(response.body) as Map<String, dynamic>;
       _currentUser = User(
         id: body['id']?.toString() ?? _currentUser?.id ?? '1',
-        name: body['name']?.toString() ?? _currentUser?.name ?? 'Delivery Agent',
+        name:
+            body['name']?.toString() ?? _currentUser?.name ?? 'Delivery Agent',
         email: body['email']?.toString() ?? _currentUser?.email ?? '',
         role: body['role']?.toString() ?? _currentUser?.role ?? 'agent',
-        createdAt: body['created_at'] != null 
-            ? DateTime.parse(body['created_at'].toString()) 
+        createdAt: body['created_at'] != null
+            ? DateTime.parse(body['created_at'].toString())
             : DateTime.now(),
       );
       return _currentUser!;

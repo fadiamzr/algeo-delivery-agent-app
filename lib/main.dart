@@ -12,6 +12,7 @@ import 'screens/submit_feedback_screen.dart';
 import 'screens/delivery_filters_screen.dart';
 import 'screens/sync_deliveries_screen.dart';
 import 'screens/profile_screen.dart';
+import 'screens/delivery_map_screen.dart';
 import 'widgets/bottom_nav_bar.dart';
 
 final themeProvider = ThemeProvider();
@@ -66,6 +67,7 @@ class _AlgeoVerifyAppState extends State<AlgeoVerifyApp> {
         '/verification-result': (context) => const VerificationResultScreen(),
         '/submit-feedback': (context) => const SubmitFeedbackScreen(),
         '/filters': (context) => const DeliveryFiltersScreen(),
+        '/delivery-map': (context) => const DeliveryMapScreen(),
       },
     );
   }
