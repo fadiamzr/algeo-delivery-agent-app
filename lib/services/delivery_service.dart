@@ -29,20 +29,9 @@ class DeliveryService {
     if (response.statusCode == 200) {
       var delivery = Delivery.fromJson(jsonDecode(response.body) as Map<String, dynamic>);
 
-      // Fetch full verification data if possible
-      try {
-        // Attempting to fetch full verification. We use POST /deliveries/{id}/verify
-        // as the "similar endpoint" returning full verification, or fallback if it fails.
-        final verificationResponse = await ApiService.post('/deliveries/$id/verify');
-        if (verificationResponse.statusCode >= 200 && verificationResponse.statusCode < 300) {
-          final verificationData = jsonDecode(verificationResponse.body) as Map<String, dynamic>;
-          final fullVerification = AddressVerification.fromJson(verificationData);
-          delivery = delivery.copyWith(addressVerification: fullVerification);
-        }
-      } catch (e) {
-        // Fallback: keep existing partial verification (do NOT crash)
-        // Ignoring the exception to ensure backward compatibility as requested.
-      }
+      // We already get all the necessary verification data (including latitude and longitude)
+      // from the GET /deliveries/{id} response via Delivery.fromJson.
+      // Do not call POST /verify here as it re-runs the verification and lacks lat/lng.
 
       return delivery;
     } else if (response.statusCode == 404) {
@@ -55,14 +44,12 @@ class DeliveryService {
   }
 
   static Future<List<Delivery>> filterByStatus(DeliveryStatus? status) async {
-    await Future.delayed(const Duration(milliseconds: 300));
     if (status == null) return _deliveries;
     return _deliveries.where((d) => d.status == status).toList();
   }
 
   static Future<List<Delivery>> filterByScoreRange(
       double minScore, double maxScore) async {
-    await Future.delayed(const Duration(milliseconds: 300));
     return _deliveries.where((d) {
       final score = d.addressVerification?.confidenceScore;
       if (score == null) return false;
@@ -78,7 +65,6 @@ class DeliveryService {
     DateTime? endDate,
     String? searchQuery,
   }) async {
-    await Future.delayed(const Duration(milliseconds: 400));
     var result = List<Delivery>.from(_deliveries);
 
     if (status != null) {
