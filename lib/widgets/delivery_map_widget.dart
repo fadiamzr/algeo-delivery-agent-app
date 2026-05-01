@@ -77,7 +77,7 @@ class DeliveryMapWidget extends StatelessWidget {
                    children: [
                      TileLayer(
                        urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
-                       userAgentPackageName: 'com.algeo.verify',
+                       userAgentPackageName: 'dz.algeo.delivery.agent.app',
                      ),
                      MarkerLayer(
                        markers: [
