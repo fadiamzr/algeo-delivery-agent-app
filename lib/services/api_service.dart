@@ -4,7 +4,8 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 class ApiService {
   // Use localhost for local development (Chrome/Web). Use 10.0.2.2 for Android Emulator.
-  static const String baseUrl = 'http://localhost:8000';
+  // Using Render production URL for APK builds
+  static const String baseUrl = 'https://algeo-verify.onrender.com';
 
   // ── Token persistence ──────────────────────────────────────────────────────
 
