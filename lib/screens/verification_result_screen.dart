@@ -185,6 +185,18 @@ class _VerificationResultScreenState extends State<VerificationResultScreen> {
                               normalizedAddress: verification.normalizedAddress,
                               latitude: verification.latitude,
                               longitude: verification.longitude,
+                              matchDetails: verification.matchDetails,
+                              detectedEntities: {
+                                'wilaya': verification.detectedEntities.wilaya,
+                                'commune': verification.detectedEntities.commune,
+                                'postal_code': verification.detectedEntities.postalCode,
+                                'street': verification.detectedEntities.street,
+                              },
+                              riskFlags: verification.riskFlags.map((f) => {
+                                'label': f.label,
+                                'severity': f.severity.name,
+                                'description': f.description,
+                              }).toList(),
                             );
                             if (mounted) Navigator.pop(context, true);
                           } catch (e) {

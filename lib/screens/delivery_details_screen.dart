@@ -117,7 +117,7 @@ class _DeliveryDetailsScreenState extends State<DeliveryDetailsScreen> {
                         TileLayer(
                           urlTemplate:
                               "https://tile.openstreetmap.org/{z}/{x}/{y}.png",
-                          userAgentPackageName: 'com.example.app',
+                          userAgentPackageName: 'dz.algeo.delivery.agent.app',
                         ),
                         MarkerLayer(
                           markers: [
@@ -281,19 +281,21 @@ class _DeliveryDetailsScreenState extends State<DeliveryDetailsScreen> {
                     ),
                     const SizedBox(height: 16),
                     ScoreBar(score: verification.confidenceScore),
-                    const SizedBox(height: 12),
-                    Container(
-                      width: double.infinity,
-                      padding: const EdgeInsets.all(12),
-                      decoration: BoxDecoration(
-                        color: cs.surface,
-                        borderRadius: BorderRadius.circular(10),
+                    if (verification.matchDetails.isNotEmpty) ...[
+                      const SizedBox(height: 12),
+                      Container(
+                        width: double.infinity,
+                        padding: const EdgeInsets.all(12),
+                        decoration: BoxDecoration(
+                          color: cs.surface,
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        child: Text(
+                          verification.matchDetails,
+                          style: TextStyle(color: cs.onSurfaceVariant, fontSize: 13),
+                        ),
                       ),
-                      child: Text(
-                        verification.matchDetails,
-                        style: TextStyle(color: cs.onSurfaceVariant, fontSize: 13),
-                      ),
-                    ),
+                    ],
                   ],
                 ),
               ),

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import '../app_theme.dart';
 import '../main.dart';
 import '../services/auth_service.dart';
@@ -63,16 +64,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
       child: Column(
         children: [
           const SizedBox(height: 8),
-          // Avatar
+          // App Logo
           Container(
             width: 90,
             height: 90,
             decoration: BoxDecoration(
-              gradient: const LinearGradient(
-                colors: [AppTheme.accentPrimary, AppTheme.accentSecondary],
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-              ),
+              color: isDark ? AppTheme.primaryDark : AppTheme.primaryLight,
               borderRadius: BorderRadius.circular(24),
               boxShadow: [
                 BoxShadow(
@@ -82,14 +79,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 ),
               ],
             ),
-            child: Center(
-              child: Text(
-                user?.name.split(' ').map((n) => n[0]).join('') ?? 'DA',
-                style: TextStyle(
-                  color: isDark ? AppTheme.primaryDark : AppTheme.primaryLight,
-                  fontSize: 28,
-                  fontWeight: FontWeight.w700,
-                ),
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(24),
+              child: SvgPicture.asset(
+                isDark ? 'assets/logo-dark.svg' : 'assets/logo-light.svg',
+                width: 90,
+                height: 90,
+                fit: BoxFit.cover,
               ),
             ),
           ),

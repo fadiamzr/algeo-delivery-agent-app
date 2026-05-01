@@ -72,6 +72,9 @@ class VerificationService {
     required String normalizedAddress,
     double? latitude,
     double? longitude,
+    String? matchDetails,
+    Map<String, dynamic>? detectedEntities,
+    List<Map<String, dynamic>>? riskFlags,
   }) async {
     final payload = <String, dynamic>{
       'confidence_score': confidenceScore,
@@ -79,6 +82,9 @@ class VerificationService {
     };
     if (latitude != null) payload['latitude'] = latitude;
     if (longitude != null) payload['longitude'] = longitude;
+    if (matchDetails != null) payload['match_details'] = matchDetails;
+    if (detectedEntities != null) payload['detected_entities'] = detectedEntities;
+    if (riskFlags != null) payload['risk_flags'] = riskFlags;
 
     final response = await ApiService.patch(
       '/deliveries/$deliveryId/verification',
