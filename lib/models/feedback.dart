@@ -23,4 +23,23 @@ class DeliveryFeedback {
         return 'Partial';
     }
   }
+
+  factory DeliveryFeedback.fromJson(Map<String, dynamic> json) {
+    return DeliveryFeedback(
+      id: json['id'] as String,
+      outcome: FeedbackOutcome.values.firstWhere(
+        (value) => value.name == json['outcome'],
+        orElse: () => FeedbackOutcome.partial,
+      ),
+      notes: (json['notes'] as String?) ?? '',
+      createdAt: DateTime.parse(json['createdAt'] as String),
+    );
+  }
+
+  Map<String, dynamic> toJson() => {
+        'id': id,
+        'outcome': outcome.name,
+        'notes': notes,
+        'createdAt': createdAt.toIso8601String(),
+      };
 }

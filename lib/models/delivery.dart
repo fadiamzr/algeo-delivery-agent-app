@@ -129,4 +129,37 @@ class Delivery {
         return 'Failed';
     }
   }
+
+  factory Delivery.fromJson(Map<String, dynamic> json) {
+    return Delivery(
+      id: json['id'] as String,
+      customerName: json['customerName'] as String,
+      customerPhone: json['customerPhone'] as String,
+      rawAddress: json['rawAddress'] as String,
+      status: DeliveryStatus.values.firstWhere(
+        (value) => value.name == json['status'],
+        orElse: () => DeliveryStatus.pending,
+      ),
+      scheduledDate: DateTime.parse(json['scheduledDate'] as String),
+      addressVerification: json['addressVerification'] == null
+          ? null
+          : AddressVerification.fromJson(
+              json['addressVerification'] as Map<String, dynamic>,
+            ),
+      feedback: json['feedback'] == null
+          ? null
+          : DeliveryFeedback.fromJson(json['feedback'] as Map<String, dynamic>),
+    );
+  }
+
+  Map<String, dynamic> toJson() => {
+        'id': id,
+        'customerName': customerName,
+        'customerPhone': customerPhone,
+        'rawAddress': rawAddress,
+        'status': status.name,
+        'scheduledDate': scheduledDate.toIso8601String(),
+        'addressVerification': addressVerification?.toJson(),
+        'feedback': feedback?.toJson(),
+      };
 }

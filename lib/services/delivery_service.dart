@@ -27,12 +27,8 @@ class DeliveryService {
     final response = await ApiService.get('/deliveries/$id');
 
     if (response.statusCode == 200) {
-      var delivery = Delivery.fromJson(jsonDecode(response.body) as Map<String, dynamic>);
-
-      // We already get all the necessary verification data (including latitude and longitude)
-      // from the GET /deliveries/{id} response via Delivery.fromJson.
-      // Do not call POST /verify here as it re-runs the verification and lacks lat/lng.
-
+      var delivery = Delivery.fromJson(
+          jsonDecode(response.body) as Map<String, dynamic>);
       return delivery;
     } else if (response.statusCode == 404) {
       return null;
@@ -82,14 +78,13 @@ class DeliveryService {
     }
 
     if (startDate != null) {
-      result = result
-          .where((d) => d.scheduledDate.isAfter(startDate))
-          .toList();
+      result = result.where((d) => d.scheduledDate.isAfter(startDate)).toList();
     }
 
     if (endDate != null) {
       result = result
-          .where((d) => d.scheduledDate.isBefore(endDate.add(const Duration(days: 1))))
+          .where((d) => d.scheduledDate
+              .isBefore(endDate.add(const Duration(days: 1))))
           .toList();
     }
 
@@ -108,15 +103,24 @@ class DeliveryService {
   static Future<void> updateDelivery(Delivery delivery) async {
     String statusStr = 'pending';
     switch (delivery.status) {
-      case DeliveryStatus.pending: statusStr = 'pending'; break;
-      case DeliveryStatus.inProgress: statusStr = 'in_progress'; break;
-      case DeliveryStatus.completed: statusStr = 'delivered'; break;
-      case DeliveryStatus.failed: statusStr = 'cancelled'; break;
+      case DeliveryStatus.pending:
+        statusStr = 'pending';
+        break;
+      case DeliveryStatus.inProgress:
+        statusStr = 'in_progress';
+        break;
+      case DeliveryStatus.completed:
+        statusStr = 'delivered';
+        break;
+      case DeliveryStatus.failed:
+        statusStr = 'cancelled';
+        break;
     }
 
-    final response = await ApiService.patch('/deliveries/${delivery.id}/status', body: {
-      'status': statusStr,
-    });
+    final response = await ApiService.patch(
+      '/deliveries/${delivery.id}/status',
+      body: {'status': statusStr},
+    );
 
     if (response.statusCode >= 200 && response.statusCode < 300) {
       final index = _deliveries.indexWhere((d) => d.id == delivery.id);

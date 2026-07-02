@@ -88,8 +88,7 @@ class AuthService {
       final body = jsonDecode(response.body) as Map<String, dynamic>;
       _currentUser = User(
         id: body['id']?.toString() ?? _currentUser?.id ?? '1',
-        name:
-            body['name']?.toString() ?? _currentUser?.name ?? 'Delivery Agent',
+        name: body['name']?.toString() ?? _currentUser?.name ?? 'Delivery Agent',
         email: body['email']?.toString() ?? _currentUser?.email ?? '',
         role: body['role']?.toString() ?? _currentUser?.role ?? 'agent',
         createdAt: body['created_at'] != null
