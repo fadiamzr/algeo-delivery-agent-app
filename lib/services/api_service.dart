@@ -1,9 +1,10 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 class ApiService {
-  static const String baseUrl = 'https://algeo-verify.onrender.com';
+  static String get baseUrl => dotenv.env['BASE_URL'] ?? 'https://algeo-verify.onrender.com';
   static const _storage = FlutterSecureStorage();
 
   // ── Token persistence ──────────────────────────────────────────────────────

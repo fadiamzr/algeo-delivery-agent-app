@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart'; 
 import 'app_theme.dart';
 import 'services/theme_provider.dart';
 import 'screens/login_screen.dart';
@@ -17,8 +18,9 @@ import 'widgets/bottom_nav_bar.dart';
 
 final themeProvider = ThemeProvider();
 
-void main() {
+void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  await dotenv.load(fileName: '.env');
   SystemChrome.setSystemUIOverlayStyle(
     const SystemUiOverlayStyle(
       statusBarColor: Colors.transparent,
